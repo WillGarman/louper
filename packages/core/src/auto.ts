@@ -1,4 +1,4 @@
-import { createLouper, type LoupeOptions } from '.'
+import { louper, type LoupeOptions } from '.'
 
 function getScriptOptions(): LoupeOptions {
   const el = document.currentScript as HTMLScriptElement | null
@@ -13,5 +13,5 @@ function getScriptOptions(): LoupeOptions {
   return opts
 }
 
-const instance = createLouper(getScriptOptions())
+const instance = louper(getScriptOptions())
 ;(window as any).__louper = instance

@@ -1,6 +1,6 @@
 {
   "name": "louper",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A lightweight zoom circle dev tool. Hold Alt/Option to magnify any part of your page.",
   "license": "MIT",
   "author": "Will Garman",

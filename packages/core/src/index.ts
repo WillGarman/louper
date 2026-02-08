@@ -31,7 +31,7 @@ const MAX_ZOOM = 10
 const ZOOM_SENSITIVITY = 0.002
 const FADE_OUT = 100
 
-export function createLouper(userOpts: LoupeOptions = {}): LoupeInstance {
+export function louper(userOpts: LoupeOptions = {}): LoupeInstance {
   let opts = { ...DEFAULTS, ...userOpts }
 
   const host = document.createElement('louper-lens')
@@ -226,3 +226,4 @@ export function createLouper(userOpts: LoupeOptions = {}): LoupeInstance {
 
   return { destroy, update, activate, deactivate }
 }
+
