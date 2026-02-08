@@ -1,6 +1,6 @@
 {
   "name": "louper",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A lightweight zoom circle dev tool. Hold Alt/Option to magnify any part of your page.",
   "license": "MIT",
   "author": "Will Garman",
@@ -41,7 +41,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch",
+    "dev": "tsup --watch & npx serve dist -l 5555 &",
     "test": "vitest run",
     "test:watch": "vitest"
   },

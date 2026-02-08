@@ -1,13 +1,8 @@
 export interface LoupeOptions {
-  /** Default: 2 */
   zoomLevel?: number
-  /** Lens radius in px. Default: 150 */
   radius?: number
-  /** Default: 3 */
   borderWidth?: number
-  /** Default: "white" */
   borderColor?: string
-  /** Default: "Alt". Set to false to disable. */
   hotkey?: 'Alt' | 'Control' | 'Shift' | 'Meta' | false
 }
 
@@ -35,157 +30,173 @@ export function louper(userOpts: LoupeOptions = {}): LoupeInstance {
   let opts = { ...DEFAULTS, ...userOpts }
 
   const host = document.createElement('louper-lens')
-  const root = host.attachShadow({ mode: 'closed' })
-  const styleEl = document.createElement('style')
-  styleEl.textContent = css()
-  root.appendChild(styleEl)
-  const wrapper = document.createElement('div')
-  wrapper.className = 'louper-clone-wrapper'
-  const content = document.createElement('div')
-  content.className = 'louper-clone-container'
-  wrapper.appendChild(content)
-  root.appendChild(wrapper)
+  const shadow = host.attachShadow({ mode: 'closed' })
+
+  const hostStyle = document.createElement('style')
+  hostStyle.textContent = `
+    :host {
+      position: fixed; z-index: 2147483647;
+      pointer-events: none; border-radius: 50%;
+      overflow: hidden; box-sizing: border-box;
+      opacity: 0; transition: opacity ${FADE_OUT}ms ease-out;
+    }
+    :host(.louper-active) { opacity: 1; transition: none; }
+    #lens { position: absolute; }
+  `
+  shadow.appendChild(hostStyle)
+
+  const lens = document.createElement('div')
+  lens.id = 'lens'
+  shadow.appendChild(lens)
   document.body.appendChild(host)
 
   let active = false
-  let mouseX = 0, mouseY = 0, scrollX = 0, scrollY = 0
+  let mouseX = 0, mouseY = 0
   let zoomLevel = opts.zoomLevel
   let rafId: number | null = null
   let pending = false
-  let mutationTimer: ReturnType<typeof setTimeout> | null = null
+  let observer: MutationObserver | null = null
+  let debounceId: ReturnType<typeof setTimeout> | null = null
+  let cloneBody: HTMLElement | null = null
 
-  function css() {
-    const d = opts.radius * 2
-    return `
-      :host {
-        position: fixed; top: 0; left: 0;
-        z-index: 2147483647;
-        pointer-events: none;
-        width: ${d}px; height: ${d}px;
-        border-radius: 50%;
-        border: ${opts.borderWidth}px solid ${opts.borderColor};
-        box-shadow: 0 2px 12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.1);
-        overflow: hidden; opacity: 0;
-        transition: opacity ${FADE_OUT}ms ease-out;
-        will-change: transform, opacity;
+  function readStyles(): string {
+    let css = '* { animation:none!important; transition:none!important; }\n'
+    css += 'louper-lens { display:none!important; }\n'
+    for (const sheet of document.styleSheets) {
+      try {
+        for (const rule of sheet.cssRules) css += rule.cssText + '\n'
+      } catch {
+        const href = (sheet as CSSStyleSheet).href
+        if (href) css += `@import url("${href}");\n`
       }
-      :host(.louper-active) { opacity: 1; transition: none; }
-      .louper-clone-wrapper {
-        position: absolute; top: 0; left: 0;
-        width: 100%; height: 100%;
-        overflow: hidden; border-radius: 50%;
+    }
+    return css
+  }
+
+  // Walk from el up to body recording child indices, then walk same path in clone
+  function findInClone(el: Element): Element | null {
+    if (!cloneBody) return null
+    const path: number[] = []
+    let cur: Element | null = el
+    while (cur && cur !== document.body) {
+      const parent: Element | null = cur.parentElement
+      if (!parent) return null
+      path.push(Array.from(parent.children).indexOf(cur))
+      cur = parent
+    }
+    if (cur !== document.body) return null
+    let node: Element = cloneBody
+    for (let i = path.length - 1; i >= 0; i--) {
+      const child = node.children[path[i]]
+      if (!child) return null
+      node = child
+    }
+    return node
+  }
+
+  function syncAllScroll() {
+    if (!cloneBody) return
+    const els = document.body.querySelectorAll('*')
+    for (let i = 0; i < els.length; i++) {
+      const el = els[i] as HTMLElement
+      if (el.scrollTop || el.scrollLeft) {
+        const c = findInClone(el) as HTMLElement
+        if (c) {
+          c.scrollTop = el.scrollTop
+          c.scrollLeft = el.scrollLeft
+        }
       }
-      .louper-clone-container {
-        position: absolute; top: 0; left: 0;
-        transform-origin: 0 0;
-      }
-    `
+    }
+  }
+
+  function clonePage() {
+    // Don't remove elements from clone — preserves structure for findInClone
+    const clone = document.body.cloneNode(true) as HTMLElement
+    lens.innerHTML = ''
+    const s = document.createElement('style')
+    s.textContent = readStyles()
+    lens.appendChild(s)
+    lens.appendChild(clone)
+    cloneBody = clone
+    requestAnimationFrame(syncAllScroll)
+  }
+
+  function onScroll(e: Event) {
+    if (!active || !cloneBody) return
+    const target = e.target as Element
+    if (!target || target === (document as any) || target === document.documentElement) return
+    const c = findInClone(target) as HTMLElement
+    if (c) {
+      c.scrollTop = target.scrollTop
+      c.scrollLeft = target.scrollLeft
+    }
+  }
+
+  function scheduleClone() {
+    if (debounceId) clearTimeout(debounceId)
+    debounceId = setTimeout(() => { if (active) clonePage() }, 200)
   }
 
   function render() {
     pending = false
     rafId = null
-    const { radius, borderWidth } = opts
-    host.style.transform = `translate(${mouseX - radius - borderWidth}px,${mouseY - radius - borderWidth}px)`
-    const cx = radius - (mouseX + scrollX) * zoomLevel
-    const cy = radius - (mouseY + scrollY) * zoomLevel
-    content.style.transform = `scale(${zoomLevel}) translate(${cx / zoomLevel}px,${cy / zoomLevel}px)`
+    const { radius, borderWidth, borderColor } = opts
+    const sx = window.scrollX, sy = window.scrollY
+
+    host.style.left = `${mouseX - radius}px`
+    host.style.top = `${mouseY - radius}px`
+    host.style.width = `${radius * 2}px`
+    host.style.height = `${radius * 2}px`
+    host.style.border = `${borderWidth}px solid ${borderColor}`
+    host.style.boxShadow = '0 2px 12px rgba(0,0,0,.15), 0 0 0 1px rgba(0,0,0,.1)'
+
+    const bx = mouseX + sx, by = mouseY + sy
+    lens.style.left = `${radius - bx * zoomLevel}px`
+    lens.style.top = `${radius - by * zoomLevel}px`
+    lens.style.width = `${document.documentElement.scrollWidth}px`
+    lens.style.height = `${document.documentElement.scrollHeight}px`
+    lens.style.transform = `scale(${zoomLevel})`
+    lens.style.transformOrigin = `0 0`
   }
 
   function scheduleRender() {
-    if (!pending) {
-      pending = true
-      rafId = requestAnimationFrame(render)
-    }
+    if (!pending) { pending = true; rafId = requestAnimationFrame(render) }
   }
-
-  function clonePage() {
-    const docEl = document.documentElement
-    const copy = docEl.cloneNode(true) as HTMLElement
-    copy.querySelectorAll('script').forEach(s => s.remove())
-    copy.querySelectorAll('louper-lens').forEach(el => el.remove())
-
-    root.querySelectorAll('[data-louper-sheet]').forEach(el => el.remove())
-    for (const sheet of Array.from(document.styleSheets)) {
-      try {
-        if (sheet.href) {
-          const link = document.createElement('link')
-          link.rel = 'stylesheet'
-          link.href = sheet.href
-          link.setAttribute('data-louper-sheet', '')
-          root.appendChild(link)
-        } else if (sheet.ownerNode instanceof HTMLStyleElement) {
-          const s = document.createElement('style')
-          s.textContent = sheet.ownerNode.textContent
-          s.setAttribute('data-louper-sheet', '')
-          root.appendChild(s)
-        }
-      } catch {} // cross-origin
-    }
-
-    const srcCanvases = docEl.querySelectorAll('canvas')
-    const dstCanvases = copy.querySelectorAll('canvas')
-    srcCanvases.forEach((src, i) => {
-      const dst = dstCanvases[i]
-      if (!dst) return
-      dst.width = src.width
-      dst.height = src.height
-      const ctx = dst.getContext('2d')
-      if (ctx) try { ctx.drawImage(src, 0, 0) } catch {} // tainted
-    })
-
-    copy.style.margin = '0'
-    copy.style.position = 'absolute'
-    copy.style.top = '0'
-    copy.style.left = '0'
-    copy.style.width = docEl.scrollWidth + 'px'
-    copy.style.height = docEl.scrollHeight + 'px'
-    content.innerHTML = ''
-    content.appendChild(copy)
-  }
-
-  const observer = new MutationObserver(() => {
-    if (!active) return
-    if (mutationTimer) clearTimeout(mutationTimer)
-    mutationTimer = setTimeout(() => { if (active) clonePage() }, 16)
-  })
 
   function activate() {
     if (active) return
     active = true
-    scrollX = window.scrollX
-    scrollY = window.scrollY
     zoomLevel = opts.zoomLevel
     clonePage()
     host.classList.add('louper-active')
     scheduleRender()
-    observer.observe(document.body, {
-      childList: true, subtree: true, characterData: true,
-      attributes: true, attributeFilter: ['class', 'style', 'data-state'],
+    observer = new MutationObserver((muts) => {
+      if (muts.every(m => m.target === host)) return
+      scheduleClone()
     })
+    observer.observe(document.body, {
+      childList: true, subtree: true,
+      attributes: true, attributeFilter: ['class', 'style'],
+    })
+    document.addEventListener('scroll', onScroll, true)
   }
 
   function deactivate() {
     if (!active) return
     active = false
-    observer.disconnect()
-    if (mutationTimer) { clearTimeout(mutationTimer); mutationTimer = null }
     host.classList.remove('louper-active')
-    setTimeout(() => { if (!active) content.innerHTML = '' }, FADE_OUT)
+    observer?.disconnect()
+    observer = null
+    if (debounceId) { clearTimeout(debounceId); debounceId = null }
+    document.removeEventListener('scroll', onScroll, true)
+    cloneBody = null
   }
 
   function onKeyDown(e: KeyboardEvent) { if (e.key === opts.hotkey && !active) activate() }
   function onKeyUp(e: KeyboardEvent) { if (e.key === opts.hotkey) deactivate() }
   function onMouseMove(e: MouseEvent) {
-    mouseX = e.clientX
-    mouseY = e.clientY
+    mouseX = e.clientX; mouseY = e.clientY
     if (active) scheduleRender()
-  }
-  function onScroll() {
-    if (!active) return
-    scrollX = window.scrollX
-    scrollY = window.scrollY
-    scheduleRender()
   }
   function onWheel(e: WheelEvent) {
     if (!active) return
@@ -200,19 +211,15 @@ export function louper(userOpts: LoupeOptions = {}): LoupeInstance {
     window.addEventListener('blur', deactivate)
   }
   window.addEventListener('mousemove', onMouseMove)
-  window.addEventListener('scroll', onScroll, { passive: true })
   window.addEventListener('wheel', onWheel, { passive: false })
 
   function destroy() {
-    active = false
-    observer.disconnect()
-    if (mutationTimer) clearTimeout(mutationTimer)
+    deactivate()
     if (rafId !== null) cancelAnimationFrame(rafId)
     window.removeEventListener('keydown', onKeyDown)
     window.removeEventListener('keyup', onKeyUp)
     window.removeEventListener('mousemove', onMouseMove)
     window.removeEventListener('blur', deactivate)
-    window.removeEventListener('scroll', onScroll)
     window.removeEventListener('wheel', onWheel)
     host.remove()
   }
@@ -220,10 +227,8 @@ export function louper(userOpts: LoupeOptions = {}): LoupeInstance {
   function update(newOpts: Partial<LoupeOptions>) {
     opts = { ...opts, ...newOpts }
     if (newOpts.zoomLevel !== undefined) zoomLevel = newOpts.zoomLevel
-    styleEl.textContent = css()
     if (active) scheduleRender()
   }
 
   return { destroy, update, activate, deactivate }
 }
-
