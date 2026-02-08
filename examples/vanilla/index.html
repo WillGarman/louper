@@ -3,259 +3,530 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Louper - Demo</title>
+  <title>Louper – A 2KB zoom lens for the browser</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&display=swap" rel="stylesheet">
   <style>
+    body { opacity: 0; }
+  </style>
+  <script>document.fonts.ready.then(function() { document.body.style.opacity = '1'; });</script>
+  <style>
+    :root {
+      --font-serif: 'Newsreader', Georgia, 'Times New Roman', serif;
+      --font-mono: 'DM Mono', 'SF Mono', SFMono-Regular, ui-monospace, monospace;
+      --ink: #111;
+      --ink-muted: #555;
+      --ink-faint: #999;
+      --ink-ghost: #ccc;
+      --surface: #fdfdfc;
+      --border-hairline: 1px;
+    }
+
+    @media (min-resolution: 2dppx) {
+      :root { --border-hairline: 0.5px; }
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      line-height: 1.6;
-      color: #333;
-      padding: 2rem;
-      min-height: 200vh;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: var(--font-serif);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      color: var(--ink);
+      background: var(--surface);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
     }
 
+    button, a, input { touch-action: manipulation; }
+    ::selection { background: rgba(0, 0, 0, 0.08); }
+
+    /* ── Layout ── */
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Hero ── */
     .hero {
-      max-width: 800px;
-      margin: 0 auto 3rem;
-      text-align: center;
-      color: white;
+      padding: 70px 0 28px;
     }
 
     .hero h1 {
-      font-size: 3rem;
-      margin-bottom: 0.5rem;
+      font-family: var(--font-serif);
+      font-size: 32px;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      color: var(--ink);
+      max-width: 520px;
     }
 
-    .hero p {
-      font-size: 1.2rem;
-      opacity: 0.9;
-    }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      max-width: 900px;
-      margin: 0 auto 3rem;
-    }
-
-    .card {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .card h3 {
-      color: #5b21b6;
-      margin-bottom: 0.5rem;
-    }
-
-    .card p {
-      font-size: 0.95rem;
-      color: #555;
-    }
-
-    .tiny-text {
-      max-width: 600px;
-      margin: 0 auto 3rem;
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .tiny-text h3 {
-      color: #5b21b6;
-      margin-bottom: 0.75rem;
-    }
-
-    .tiny-text .small {
-      font-size: 6px;
-      line-height: 1.4;
-      color: #666;
-    }
-
-    .color-swatches {
-      display: flex;
-      gap: 0.75rem;
-      flex-wrap: wrap;
-      max-width: 600px;
-      margin: 0 auto 3rem;
-    }
-
-    .swatch {
-      width: 60px;
-      height: 60px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .data-table {
-      max-width: 700px;
-      margin: 0 auto 3rem;
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .data-table h3 {
-      color: #5b21b6;
-      margin-bottom: 0.75rem;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
-
-    th, td {
-      padding: 0.5rem;
-      border-bottom: 1px solid #eee;
-      text-align: left;
-    }
-
-    th {
-      color: #5b21b6;
-      font-weight: 600;
-    }
-
-    canvas {
-      display: block;
-      max-width: 400px;
-      margin: 0 auto 3rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .instructions {
-      position: fixed;
-      bottom: 1.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.8);
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 999px;
-      font-size: 0.9rem;
-      z-index: 1000;
-      pointer-events: none;
+    .hero-try {
+      margin-top: 20px;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--ink-faint);
+      user-select: none;
     }
 
     kbd {
-      background: rgba(255, 255, 255, 0.2);
-      padding: 0.15rem 0.5rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 22px;
+      min-width: 22px;
+      padding: 0 6px;
+      background: rgba(0,0,0,0.06);
+      color: var(--ink-muted);
       border-radius: 4px;
-      font-family: monospace;
-      font-size: 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 400;
+      vertical-align: middle;
+    }
+
+    /* ── Description ── */
+    .description {
+      padding-bottom: 12px;
+    }
+
+    .description p {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--ink-muted);
+      max-width: 480px;
+    }
+
+    /* ── Code Window ── */
+    .code-section {
+      padding-bottom: 28px;
+    }
+
+    .code-window {
+      background: #fcfcfc;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #f0f0f0;
+    }
+
+    .code-tabs {
+      display: flex;
+      align-items: center;
+      padding: 0px 6px 0px 0px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .code-tab {
+      padding: 10px 14px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #8f8f8f;
+      background: none;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.15s;
+    }
+
+    @media (hover: hover) {
+      .code-tab:hover { color: #555; }
+    }
+
+    .code-tab.active { color: #171717; }
+
+    .code-tab.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 14px;
+      right: 14px;
+      height: 1px;
+      background: #171717;
+    }
+
+    .code-filename {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 8px 8px 16px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: #8f8f8f;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .code-body {
+      display: flex;
+      padding: 12px 0;
+      overflow-x: auto;
+      background: linear-gradient(to top, #f8f8f8, #fcfcfc 16px);
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .code-body:last-child {
+      border-bottom: none;
+    }
+
+    .code-lines {
+      padding: 0 0 0 16px;
+      text-align: right;
+      user-select: none;
+      pointer-events: none;
+      flex-shrink: 0;
+    }
+
+    .code-lines span {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.7;
+      color: #c7c7c7;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .code-source {
+      flex: 1;
+      padding: 0 20px 0 14px;
+    }
+
+    .code-source pre {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      line-height: 1.7;
+      color: #171717;
+      margin: 0;
+      white-space: pre;
+    }
+
+    .code-panel { display: none; }
+    .code-panel.active { display: block; }
+
+    .t-tag { color: #171717; }
+    .t-fn { color: #171717; }
+    .t-keyword { color: #6f6f6f; }
+    .t-attr { color: #6f6f6f; }
+    .t-str { color: #6f6f6f; }
+    .t-comment { color: #8f8f8f; }
+    .t-punct { color: #8f8f8f; }
+    .t-plain { color: #171717; }
+
+    .code-copy {
+      background: #fff;
+      border: 1px solid #ededed;
+      color: #171717;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.15s;
+    }
+
+    @media (hover: hover) {
+      .code-copy:hover { background: #f8f8f8; }
+    }
+
+    /* ── Configurator ── */
+    .configurator-title {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--ink-muted);
+      margin-bottom: 16px;
+    }
+
+    .configurator-hint {
+      color: var(--ink-ghost);
+    }
+
+    .config-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+
+    .config-row:last-of-type { margin-bottom: 0; }
+
+    .config-name {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--ink-muted);
+      width: 52px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .config-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 3px;
+      border-radius: 2px;
+      background: rgba(0,0,0,0.12);
+      outline: none;
+      max-width: 200px;
+    }
+
+    .config-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--ink);
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }
+
+    .config-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--ink);
+      cursor: pointer;
+      border: none;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    }
+
+    .config-value {
+      font-family: var(--font-mono);
+      font-size: 13px;
+      color: var(--ink);
+      width: 36px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .config-reset {
+      margin-top: 14px;
+      background: none;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-ghost);
+      cursor: pointer;
+      padding: 4px 0;
+      margin-left: 66px;
+      transition: color 0.15s;
+    }
+
+    @media (hover: hover) {
+      .config-reset:hover { color: var(--ink-faint); }
+    }
+
+    .config-reset:active { transform: scale(0.97); }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: auto;
+      border-top: var(--border-hairline) solid rgba(0, 0, 0, 0.08);
+    }
+
+    .footer-inner {
+      max-width: 640px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      color: var(--ink-ghost);
+    }
+
+    .footer-inner a {
+      color: var(--ink-ghost);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    @media (hover: hover) {
+      .footer-inner a:hover { color: var(--ink-faint); }
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .hero { padding: 40px 0 36px; }
+      .hero h1 { font-size: 26px; }
+      .config-slider { max-width: none; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="hero">
-    <h1>Louper</h1>
-    <p>A zoom circle dev tool. Hold <kbd>Alt</kbd> / <kbd>Option</kbd> to magnify.</p>
+
+  <div class="page">
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1>A zoom lens that lets you inspect <em>every</em> pixel on a page</h1>
+      <p class="hero-try">Press <kbd>&#8997; option</kbd> / <kbd>alt</kbd> to try it on this page</p>
+    </section>
+
+    <!-- Specs -->
+    <section class="description">
+      <p>2 KB gzipped. Zero dependencies.</p>
+    </section>
+
+    <!-- Usage -->
+    <section class="description">
+      <p>Hold <kbd>&#8997;</kbd> / <kbd>alt</kbd> to magnify. Scroll to zoom in and out.</p>
+    </section>
+
+    <!-- Code -->
+    <section class="code-section">
+      <div class="code-window">
+        <div class="code-tabs">
+          <button class="code-tab active" data-tab="script">Script Tag</button>
+          <button class="code-tab" data-tab="npm">npm</button>
+          <button class="code-tab" data-tab="shadcn">shadcn</button>
+        </div>
+
+        <div class="code-panel active" data-panel="script" data-file="index.html">
+          <div class="code-filename"><span>index.html</span><button class="code-copy">Copy</button></div>
+          <div class="code-body">
+            <div class="code-lines"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+            <div class="code-source">
+              <pre><span class="t-comment">&lt;!-- paste this before any scripts --&gt;</span>
+<span class="t-punct">&lt;</span><span class="t-tag">script</span>
+  <span class="t-attr">src</span><span class="t-punct">=</span><span class="t-str">"https://unpkg.com/louper"</span>
+<span class="t-punct">&gt;&lt;/</span><span class="t-tag">script</span><span class="t-punct">&gt;</span>
+
+</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-panel" data-panel="npm" data-file="terminal">
+          <div class="code-filename"><span>terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body">
+            <div class="code-lines"><span>~</span></div>
+            <div class="code-source">
+              <pre><span class="t-plain">npm install louper</span></pre>
+            </div>
+          </div>
+          <div class="code-filename"><span>app.ts</span><button class="code-copy">Copy</button></div>
+          <div class="code-body">
+            <div class="code-lines"><span>1</span><span>2</span><span>3</span></div>
+            <div class="code-source">
+              <pre><span class="t-keyword">import</span> <span class="t-punct">{</span> <span class="t-fn">createLouper</span> <span class="t-punct">}</span> <span class="t-keyword">from</span> <span class="t-str">'louper'</span>
+
+<span class="t-fn">createLouper</span><span class="t-punct">()</span></pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="code-panel" data-panel="shadcn" data-file="terminal">
+          <div class="code-filename"><span>terminal</span><button class="code-copy">Copy</button></div>
+          <div class="code-body">
+            <div class="code-lines"><span>~</span></div>
+            <div class="code-source">
+              <pre><span class="t-plain">npx shadcn add https://louper.dev/r/louper.json</span></pre>
+            </div>
+          </div>
+          <div class="code-filename"><span>layout.tsx</span><button class="code-copy">Copy</button></div>
+          <div class="code-body">
+            <div class="code-lines"><span>1</span><span>2</span><span>3</span></div>
+            <div class="code-source">
+              <pre><span class="t-keyword">import</span> <span class="t-punct">{</span> <span class="t-fn">Louper</span> <span class="t-punct">}</span> <span class="t-keyword">from</span> <span class="t-str">'@/components/ui/louper'</span>
+
+<span class="t-punct">&lt;</span><span class="t-fn">Louper</span> <span class="t-punct">/&gt;</span></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Configurator -->
+    <section>
+      <div class="configurator-title">Adjust the lens <span class="configurator-hint">— hold &#8997; / alt to preview</span></div>
+      <div class="config-row">
+        <span class="config-name">size</span>
+        <input type="range" class="config-slider" id="cfg-radius" min="50" max="300" value="100" step="10" aria-label="Lens size">
+        <span class="config-value" id="cfg-radius-val">100</span>
+      </div>
+      <div class="config-row">
+        <span class="config-name">zoom</span>
+        <input type="range" class="config-slider" id="cfg-zoom" min="1" max="10" value="2" step="0.5" aria-label="Zoom level">
+        <span class="config-value" id="cfg-zoom-val">2&times;</span>
+      </div>
+      <button class="config-reset" id="cfg-reset">reset</button>
+    </section>
+
   </div>
 
-  <div class="card-grid">
-    <div class="card">
-      <h3>Lightweight</h3>
-      <p>Under 2KB gzipped. No dependencies. Works with any page via a single script tag.</p>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <span>By <a href="https://willgarman.dev" target="_blank" rel="noopener" style="color: var(--ink)">Will Garman</a></span>
+      <a href="https://github.com/willgarman/louper" target="_blank" rel="noopener">github &#8599;</a>
     </div>
-    <div class="card">
-      <h3>DOM Cloning</h3>
-      <p>Clones the live DOM including CSS state. No canvas rendering, no screenshots — just pure CSS transforms.</p>
-    </div>
-    <div class="card">
-      <h3>Shadow DOM</h3>
-      <p>The magnifier lives in a closed Shadow DOM. Your page styles and the loupe styles never interfere.</p>
-    </div>
-    <div class="card">
-      <h3>60fps</h3>
-      <p>Position updates use GPU-composited CSS transforms batched via requestAnimationFrame.</p>
-    </div>
-    <div class="card">
-      <h3>Configurable</h3>
-      <p>Zoom level, radius, border style, activation key — all customizable via API or data attributes.</p>
-    </div>
-    <div class="card">
-      <h3>Framework Agnostic</h3>
-      <p>Works with React, Vue, Svelte, or plain HTML. Also available as a shadcn component.</p>
-    </div>
-  </div>
-
-  <div class="tiny-text">
-    <h3>Try zooming into this tiny text</h3>
-    <p class="small">
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
-      incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-      exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-      dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-      mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit
-      voluptatem accusantium doloremque laudantium, totam rem aperiam.
-    </p>
-  </div>
-
-  <div class="color-swatches">
-    <div class="swatch" style="background: #ef4444;"></div>
-    <div class="swatch" style="background: #f97316;"></div>
-    <div class="swatch" style="background: #eab308;"></div>
-    <div class="swatch" style="background: #22c55e;"></div>
-    <div class="swatch" style="background: #3b82f6;"></div>
-    <div class="swatch" style="background: #8b5cf6;"></div>
-    <div class="swatch" style="background: #ec4899;"></div>
-    <div class="swatch" style="background: #14b8a6;"></div>
-    <div class="swatch" style="background: #64748b;"></div>
-    <div class="swatch" style="background: #1e293b;"></div>
-  </div>
-
-  <div class="data-table">
-    <h3>Sample Data</h3>
-    <table>
-      <thead>
-        <tr>
-          <th>Component</th>
-          <th>Size (gzip)</th>
-          <th>Dependencies</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>louper</td><td>1.9 KB</td><td>0</td><td>Stable</td></tr>
-        <tr><td>louper/auto</td><td>1.9 KB</td><td>0</td><td>Stable</td></tr>
-        <tr><td>@louper/shadcn</td><td>N/A</td><td>react</td><td>Beta</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <canvas id="demo-canvas" width="400" height="200"></canvas>
-
-  <div class="instructions">
-    Hold <kbd>Alt</kbd> / <kbd>Option</kbd> to magnify
-  </div>
+  </footer>
 
   <script>
-    // Draw something on the canvas to test canvas cloning
-    const canvas = document.getElementById('demo-canvas');
-    const ctx = canvas.getContext('2d');
-    const gradient = ctx.createLinearGradient(0, 0, 400, 200);
-    gradient.addColorStop(0, '#667eea');
-    gradient.addColorStop(1, '#764ba2');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 400, 200);
-    ctx.fillStyle = 'white';
-    ctx.font = '24px -apple-system, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('Canvas Element', 200, 110);
-    ctx.font = '14px -apple-system, sans-serif';
-    ctx.fillText('(pixel data is cloned too)', 200, 140);
+    // Tab switching
+    document.querySelectorAll('.code-tab').forEach(function(tab) {
+      tab.addEventListener('click', function() {
+        var name = this.dataset.tab;
+        document.querySelectorAll('.code-tab').forEach(function(t) { t.classList.remove('active'); });
+        document.querySelectorAll('.code-panel').forEach(function(p) { p.classList.remove('active'); });
+        this.classList.add('active');
+        document.querySelector('.code-panel[data-panel="' + name + '"]').classList.add('active');
+      });
+    });
+
+    // Copy code (per-block)
+    document.querySelectorAll('.code-copy').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var pre = this.closest('.code-filename').nextElementSibling.querySelector('pre');
+        var el = this;
+        navigator.clipboard.writeText(pre.textContent.trim()).then(function() {
+          el.textContent = 'Copied!';
+          setTimeout(function() { el.textContent = 'Copy'; }, 1500);
+        });
+      });
+    });
+
+    // Props configurator
+    var defaults = { radius: 100, zoom: 2 };
+
+    function updateLouper(opts) {
+      if (window.__louper) window.__louper.update(opts);
+    }
+
+    document.getElementById('cfg-radius').addEventListener('input', function() {
+      document.getElementById('cfg-radius-val').textContent = this.value;
+      updateLouper({ radius: Number(this.value) });
+    });
+
+    document.getElementById('cfg-zoom').addEventListener('input', function() {
+      document.getElementById('cfg-zoom-val').innerHTML = this.value + '&times;';
+      updateLouper({ zoomLevel: Number(this.value) });
+    });
+
+    document.getElementById('cfg-reset').addEventListener('click', function() {
+      document.getElementById('cfg-radius').value = defaults.radius;
+      document.getElementById('cfg-radius-val').textContent = defaults.radius;
+      document.getElementById('cfg-zoom').value = defaults.zoom;
+      document.getElementById('cfg-zoom-val').innerHTML = defaults.zoom + '&times;';
+      updateLouper({ radius: defaults.radius, zoomLevel: defaults.zoom });
+    });
   </script>
 
-  <script src="../../packages/core/dist/auto.global.js"></script>
+  <script src="../../packages/core/dist/auto.global.js" data-zoom="2" data-radius="100" data-border-width="0"></script>
 </body>
 </html>
