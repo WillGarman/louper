@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Louper - Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      padding: 2rem;
+      min-height: 200vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .hero {
+      max-width: 800px;
+      margin: 0 auto 3rem;
+      text-align: center;
+      color: white;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+    }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+      max-width: 900px;
+      margin: 0 auto 3rem;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .card h3 {
+      color: #5b21b6;
+      margin-bottom: 0.5rem;
+    }
+
+    .card p {
+      font-size: 0.95rem;
+      color: #555;
+    }
+
+    .tiny-text {
+      max-width: 600px;
+      margin: 0 auto 3rem;
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .tiny-text h3 {
+      color: #5b21b6;
+      margin-bottom: 0.75rem;
+    }
+
+    .tiny-text .small {
+      font-size: 6px;
+      line-height: 1.4;
+      color: #666;
+    }
+
+    .color-swatches {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      max-width: 600px;
+      margin: 0 auto 3rem;
+    }
+
+    .swatch {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .data-table {
+      max-width: 700px;
+      margin: 0 auto 3rem;
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .data-table h3 {
+      color: #5b21b6;
+      margin-bottom: 0.75rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+    }
+
+    th, td {
+      padding: 0.5rem;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      color: #5b21b6;
+      font-weight: 600;
+    }
+
+    canvas {
+      display: block;
+      max-width: 400px;
+      margin: 0 auto 3rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .instructions {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    kbd {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 0.15rem 0.5rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="hero">
+    <h1>Louper</h1>
+    <p>A zoom circle dev tool. Hold <kbd>Alt</kbd> / <kbd>Option</kbd> to magnify.</p>
+  </div>
+
+  <div class="card-grid">
+    <div class="card">
+      <h3>Lightweight</h3>
+      <p>Under 2KB gzipped. No dependencies. Works with any page via a single script tag.</p>
+    </div>
+    <div class="card">
+      <h3>DOM Cloning</h3>
+      <p>Clones the live DOM including CSS state. No canvas rendering, no screenshots — just pure CSS transforms.</p>
+    </div>
+    <div class="card">
+      <h3>Shadow DOM</h3>
+      <p>The magnifier lives in a closed Shadow DOM. Your page styles and the loupe styles never interfere.</p>
+    </div>
+    <div class="card">
+      <h3>60fps</h3>
+      <p>Position updates use GPU-composited CSS transforms batched via requestAnimationFrame.</p>
+    </div>
+    <div class="card">
+      <h3>Configurable</h3>
+      <p>Zoom level, radius, border style, activation key — all customizable via API or data attributes.</p>
+    </div>
+    <div class="card">
+      <h3>Framework Agnostic</h3>
+      <p>Works with React, Vue, Svelte, or plain HTML. Also available as a shadcn component.</p>
+    </div>
+  </div>
+
+  <div class="tiny-text">
+    <h3>Try zooming into this tiny text</h3>
+    <p class="small">
+      Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+      incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
+      exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
+      dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+      Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
+      mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit
+      voluptatem accusantium doloremque laudantium, totam rem aperiam.
+    </p>
+  </div>
+
+  <div class="color-swatches">
+    <div class="swatch" style="background: #ef4444;"></div>
+    <div class="swatch" style="background: #f97316;"></div>
+    <div class="swatch" style="background: #eab308;"></div>
+    <div class="swatch" style="background: #22c55e;"></div>
+    <div class="swatch" style="background: #3b82f6;"></div>
+    <div class="swatch" style="background: #8b5cf6;"></div>
+    <div class="swatch" style="background: #ec4899;"></div>
+    <div class="swatch" style="background: #14b8a6;"></div>
+    <div class="swatch" style="background: #64748b;"></div>
+    <div class="swatch" style="background: #1e293b;"></div>
+  </div>
+
+  <div class="data-table">
+    <h3>Sample Data</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Size (gzip)</th>
+          <th>Dependencies</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>louper</td><td>1.9 KB</td><td>0</td><td>Stable</td></tr>
+        <tr><td>louper/auto</td><td>1.9 KB</td><td>0</td><td>Stable</td></tr>
+        <tr><td>@louper/shadcn</td><td>N/A</td><td>react</td><td>Beta</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <canvas id="demo-canvas" width="400" height="200"></canvas>
+
+  <div class="instructions">
+    Hold <kbd>Alt</kbd> / <kbd>Option</kbd> to magnify
+  </div>
+
+  <script>
+    // Draw something on the canvas to test canvas cloning
+    const canvas = document.getElementById('demo-canvas');
+    const ctx = canvas.getContext('2d');
+    const gradient = ctx.createLinearGradient(0, 0, 400, 200);
+    gradient.addColorStop(0, '#667eea');
+    gradient.addColorStop(1, '#764ba2');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 400, 200);
+    ctx.fillStyle = 'white';
+    ctx.font = '24px -apple-system, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Canvas Element', 200, 110);
+    ctx.font = '14px -apple-system, sans-serif';
+    ctx.fillText('(pixel data is cloned too)', 200, 140);
+  </script>
+
+  <script src="../../packages/core/dist/auto.global.js"></script>
+</body>
+</html>

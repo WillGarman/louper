@@ -9,7 +9,7 @@ export default defineConfig([
     clean: true,
   },
   {
-    entry: { 'auto.global': 'src/auto.ts' },
+    entry: { auto: 'src/auto.ts' },
     format: ['iife'],
     globalName: 'Louper',
     sourcemap: true,

@@ -33,6 +33,9 @@
     },
     "./auto": "./dist/auto.global.js"
   },
+  "sideEffects": [
+    "./dist/auto.global.js"
+  ],
   "files": [
     "dist"
   ],
