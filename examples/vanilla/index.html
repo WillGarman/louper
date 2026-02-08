@@ -430,8 +430,8 @@
       <div class="configurator-title">Adjust the lens <span class="configurator-hint">— hold &#8997; / alt to preview</span></div>
       <div class="config-row">
         <span class="config-name">size</span>
-        <input type="range" class="config-slider" id="cfg-radius" min="50" max="300" value="100" step="10" aria-label="Lens size">
-        <span class="config-value" id="cfg-radius-val">100</span>
+        <input type="range" class="config-slider" id="cfg-radius" min="50" max="300" value="80" step="10" aria-label="Lens size">
+        <span class="config-value" id="cfg-radius-val">80</span>
       </div>
       <div class="config-row">
         <span class="config-name">zoom</span>
@@ -476,7 +476,7 @@
     });
 
     // Props configurator
-    var defaults = { radius: 100, zoom: 2 };
+    var defaults = { radius: 80, zoom: 2 };
 
     function updateLouper(opts) {
       if (window.__louper) window.__louper.update(opts);
@@ -501,6 +501,6 @@
     });
   </script>
 
-  <script src="../../packages/core/dist/auto.global.js" data-zoom="2" data-radius="100" data-border-width="0"></script>
+  <script src="../../packages/core/dist/auto.global.js" data-zoom="2" data-radius="80" data-border-width="0"></script>
 </body>
 </html>

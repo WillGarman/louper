@@ -29,7 +29,7 @@ import { louper } from 'louper'
 
 const loupe = louper({
   zoomLevel: 2,          // starting zoom (default: 2)
-  radius: 150,           // lens radius in px (default: 150)
+  radius: 80,            // lens radius in px (default: 80)
   borderWidth: 3,        // lens border in px (default: 3)
   borderColor: 'white',  // lens border color (default: 'white')
   hotkey: 'Alt',         // activation key, or false to disable (default: 'Alt')

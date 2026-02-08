@@ -20,7 +20,7 @@ export interface LoupeInstance {
 
 export const DEFAULTS: Required<LoupeOptions> = {
   zoomLevel: 2,
-  radius: 150,
+  radius: 80,
   borderWidth: 3,
   borderColor: 'white',
   hotkey: 'Alt',
@@ -64,7 +64,7 @@ export function louper(userOpts: LoupeOptions = {}): LoupeInstance {
         width: ${d}px; height: ${d}px;
         border-radius: 50%;
         border: ${opts.borderWidth}px solid ${opts.borderColor};
-        box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.1);
         overflow: hidden; opacity: 0;
         transition: opacity ${FADE_OUT}ms ease-out;
         will-change: transform, opacity;
