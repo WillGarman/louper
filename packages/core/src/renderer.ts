@@ -6,6 +6,8 @@ import type { LoupeOptions } from './types'
 
 export interface Renderer {
   scheduleUpdate: () => void
+  setZoomLevel: (zoom: number) => void
+  getZoomLevel: () => number
   destroy: () => void
 }
 
@@ -16,13 +18,14 @@ export function createRenderer(
 ): Renderer {
   let rafId: number | null = null
   let pending = false
-  let currentOpts = { ...DEFAULTS, ...opts }
+  const currentOpts = { ...DEFAULTS, ...opts }
+  let zoomLevel = currentOpts.zoomLevel
 
   function render() {
     pending = false
     rafId = null
 
-    const { zoomLevel, radius, borderWidth } = currentOpts
+    const { radius, borderWidth } = currentOpts
     const { mouseX, mouseY, scrollX, scrollY } = state
 
     // Position the host centered on cursor
@@ -49,6 +52,14 @@ export function createRenderer(
     }
   }
 
+  function setZoomLevel(zoom: number) {
+    zoomLevel = zoom
+  }
+
+  function getZoomLevel() {
+    return zoomLevel
+  }
+
   function destroy() {
     if (rafId !== null) {
       cancelAnimationFrame(rafId)
@@ -57,6 +68,8 @@ export function createRenderer(
 
   return {
     scheduleUpdate,
+    setZoomLevel,
+    getZoomLevel,
     destroy,
   }
 }

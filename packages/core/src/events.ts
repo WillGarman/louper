@@ -4,6 +4,7 @@ export type EventCallbacks = {
   onActivate: () => void
   onDeactivate: () => void
   onMouseMove: (x: number, y: number) => void
+  onZoom: (deltaY: number) => void
 }
 
 export function bindEvents(
@@ -50,11 +51,19 @@ export function bindEvents(
     }
   }
 
+  function onWheel(e: WheelEvent) {
+    if (state.active) {
+      e.preventDefault()
+      callbacks.onZoom(e.deltaY)
+    }
+  }
+
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
   window.addEventListener('mousemove', onMouseMove)
   window.addEventListener('blur', onBlur)
   window.addEventListener('scroll', onScroll, { passive: true })
+  window.addEventListener('wheel', onWheel, { passive: false })
 
   return () => {
     window.removeEventListener('keydown', onKeyDown)
@@ -62,5 +71,6 @@ export function bindEvents(
     window.removeEventListener('mousemove', onMouseMove)
     window.removeEventListener('blur', onBlur)
     window.removeEventListener('scroll', onScroll)
+    window.removeEventListener('wheel', onWheel)
   }
 }

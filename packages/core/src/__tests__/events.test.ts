@@ -6,6 +6,16 @@ function makeState(): LoupeState {
   return { active: false, mouseX: 0, mouseY: 0, scrollX: 0, scrollY: 0 }
 }
 
+function makeCallbacks(overrides = {}) {
+  return {
+    onActivate: vi.fn(),
+    onDeactivate: vi.fn(),
+    onMouseMove: vi.fn(),
+    onZoom: vi.fn(),
+    ...overrides,
+  }
+}
+
 describe('bindEvents', () => {
   let cleanup: (() => void) | null = null
 
@@ -17,11 +27,7 @@ describe('bindEvents', () => {
   it('calls onActivate when hotkey is pressed', () => {
     const state = makeState()
     const onActivate = vi.fn()
-    cleanup = bindEvents('Alt', state, {
-      onActivate,
-      onDeactivate: vi.fn(),
-      onMouseMove: vi.fn(),
-    })
+    cleanup = bindEvents('Alt', state, makeCallbacks({ onActivate }))
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }))
     expect(onActivate).toHaveBeenCalledOnce()
@@ -31,11 +37,7 @@ describe('bindEvents', () => {
   it('calls onDeactivate when hotkey is released', () => {
     const state = makeState()
     const onDeactivate = vi.fn()
-    cleanup = bindEvents('Alt', state, {
-      onActivate: vi.fn(),
-      onDeactivate,
-      onMouseMove: vi.fn(),
-    })
+    cleanup = bindEvents('Alt', state, makeCallbacks({ onDeactivate }))
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }))
     window.dispatchEvent(new KeyboardEvent('keyup', { key: 'Alt' }))
@@ -46,11 +48,7 @@ describe('bindEvents', () => {
   it('does not activate on wrong key', () => {
     const state = makeState()
     const onActivate = vi.fn()
-    cleanup = bindEvents('Alt', state, {
-      onActivate,
-      onDeactivate: vi.fn(),
-      onMouseMove: vi.fn(),
-    })
+    cleanup = bindEvents('Alt', state, makeCallbacks({ onActivate }))
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Control' }))
     expect(onActivate).not.toHaveBeenCalled()
@@ -58,11 +56,7 @@ describe('bindEvents', () => {
 
   it('tracks mouse position', () => {
     const state = makeState()
-    cleanup = bindEvents('Alt', state, {
-      onActivate: vi.fn(),
-      onDeactivate: vi.fn(),
-      onMouseMove: vi.fn(),
-    })
+    cleanup = bindEvents('Alt', state, makeCallbacks())
 
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 42, clientY: 84 }))
     expect(state.mouseX).toBe(42)
@@ -72,11 +66,7 @@ describe('bindEvents', () => {
   it('calls onMouseMove only when active', () => {
     const state = makeState()
     const onMouseMove = vi.fn()
-    cleanup = bindEvents('Alt', state, {
-      onActivate: vi.fn(),
-      onDeactivate: vi.fn(),
-      onMouseMove,
-    })
+    cleanup = bindEvents('Alt', state, makeCallbacks({ onMouseMove }))
 
     window.dispatchEvent(new MouseEvent('mousemove', { clientX: 10, clientY: 20 }))
     expect(onMouseMove).not.toHaveBeenCalled()
@@ -89,11 +79,7 @@ describe('bindEvents', () => {
   it('deactivates on window blur (Alt+Tab guard)', () => {
     const state = makeState()
     const onDeactivate = vi.fn()
-    cleanup = bindEvents('Alt', state, {
-      onActivate: vi.fn(),
-      onDeactivate,
-      onMouseMove: vi.fn(),
-    })
+    cleanup = bindEvents('Alt', state, makeCallbacks({ onDeactivate }))
 
     window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }))
     window.dispatchEvent(new Event('blur'))
@@ -101,14 +87,25 @@ describe('bindEvents', () => {
     expect(state.active).toBe(false)
   })
 
+  it('calls onZoom with deltaY when wheel is used while active', () => {
+    const state = makeState()
+    const onZoom = vi.fn()
+    cleanup = bindEvents('Alt', state, makeCallbacks({ onZoom }))
+
+    // Not active - should not fire
+    window.dispatchEvent(new WheelEvent('wheel', { deltaY: 100 }))
+    expect(onZoom).not.toHaveBeenCalled()
+
+    // Activate, then wheel
+    window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Alt' }))
+    window.dispatchEvent(new WheelEvent('wheel', { deltaY: -50 }))
+    expect(onZoom).toHaveBeenCalledWith(-50)
+  })
+
   it('cleans up all listeners on unbind', () => {
     const state = makeState()
     const onActivate = vi.fn()
-    cleanup = bindEvents('Alt', state, {
-      onActivate,
-      onDeactivate: vi.fn(),
-      onMouseMove: vi.fn(),
-    })
+    cleanup = bindEvents('Alt', state, makeCallbacks({ onActivate }))
 
     cleanup()
     cleanup = null

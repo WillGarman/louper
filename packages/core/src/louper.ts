@@ -20,6 +20,7 @@ export function createLouper(userOpts: LoupeOptions = {}): LoupeInstance {
 
   const unbindEvents = bindEvents(opts.hotkey, state, {
     onActivate() {
+      renderer.setZoomLevel(opts.zoomLevel)
       cloneDocument(container)
       container.host.classList.add('louper-active')
       renderer.scheduleUpdate()
@@ -34,6 +35,15 @@ export function createLouper(userOpts: LoupeOptions = {}): LoupeInstance {
       }, opts.fadeOutDuration)
     },
     onMouseMove() {
+      renderer.scheduleUpdate()
+    },
+    onZoom(deltaY: number) {
+      const current = renderer.getZoomLevel()
+      const next = Math.min(
+        opts.maxZoom,
+        Math.max(opts.minZoom, current * (1 - deltaY * opts.zoomSensitivity)),
+      )
+      renderer.setZoomLevel(next)
       renderer.scheduleUpdate()
     },
   })

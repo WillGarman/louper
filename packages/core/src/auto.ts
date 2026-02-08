@@ -21,6 +21,15 @@ function getScriptOptions(): LoupeOptions {
   const hotkey = script.getAttribute('data-hotkey')
   if (hotkey) opts.hotkey = hotkey as LoupeOptions['hotkey']
 
+  const minZoom = script.getAttribute('data-min-zoom')
+  if (minZoom) opts.minZoom = Number(minZoom)
+
+  const maxZoom = script.getAttribute('data-max-zoom')
+  if (maxZoom) opts.maxZoom = Number(maxZoom)
+
+  const zoomSensitivity = script.getAttribute('data-zoom-sensitivity')
+  if (zoomSensitivity) opts.zoomSensitivity = Number(zoomSensitivity)
+
   return opts
 }
 

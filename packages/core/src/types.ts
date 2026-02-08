@@ -1,6 +1,12 @@
 export interface LoupeOptions {
   /** Magnification level. Default: 2 */
   zoomLevel?: number
+  /** Minimum zoom level when scrolling. Default: 1 */
+  minZoom?: number
+  /** Maximum zoom level when scrolling. Default: 10 */
+  maxZoom?: number
+  /** Zoom sensitivity for scroll/pinch. Default: 0.002 */
+  zoomSensitivity?: number
   /** Radius of the magnifier circle in pixels. Default: 150 */
   radius?: number
   /** Border width in pixels. Default: 3 */
@@ -30,6 +36,9 @@ export interface LoupeState {
 
 export const DEFAULTS: Required<LoupeOptions> = {
   zoomLevel: 2,
+  minZoom: 1,
+  maxZoom: 10,
+  zoomSensitivity: 0.002,
   radius: 150,
   borderWidth: 3,
   borderColor: 'white',

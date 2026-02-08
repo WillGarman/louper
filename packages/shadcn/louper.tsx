@@ -5,6 +5,12 @@ import * as React from "react"
 interface LoupeOptions {
   /** Magnification level. Default: 2 */
   zoomLevel?: number
+  /** Minimum zoom level when scrolling. Default: 1 */
+  minZoom?: number
+  /** Maximum zoom level when scrolling. Default: 10 */
+  maxZoom?: number
+  /** Zoom sensitivity for scroll/pinch. Default: 0.002 */
+  zoomSensitivity?: number
   /** Radius of the magnifier circle in pixels. Default: 150 */
   radius?: number
   /** Border width in pixels. Default: 3 */
@@ -29,6 +35,9 @@ interface LoupeProps extends LoupeOptions {
 function Louper({
   isOpen,
   zoomLevel = 2,
+  minZoom = 1,
+  maxZoom = 10,
+  zoomSensitivity = 0.002,
   radius = 150,
   borderWidth = 3,
   borderColor = "white",
@@ -46,6 +55,7 @@ function Louper({
     scrollX: 0,
     scrollY: 0,
   })
+  const currentZoomRef = React.useRef(zoomLevel)
   const rafRef = React.useRef<number | null>(null)
   const pendingRef = React.useRef(false)
 
@@ -183,6 +193,7 @@ function Louper({
       if (!host || !cloneContainer) return
 
       const { mouseX, mouseY, scrollX, scrollY } = stateRef.current
+      const zoom = currentZoomRef.current
 
       const hostX = mouseX - radius - borderWidth
       const hostY = mouseY - radius - borderWidth
@@ -190,21 +201,22 @@ function Louper({
 
       const docX = mouseX + scrollX
       const docY = mouseY + scrollY
-      const cloneX = radius - docX * zoomLevel
-      const cloneY = radius - docY * zoomLevel
-      cloneContainer.style.transform = `scale(${zoomLevel}) translate(${cloneX / zoomLevel}px, ${cloneY / zoomLevel}px)`
+      const cloneX = radius - docX * zoom
+      const cloneY = radius - docY * zoom
+      cloneContainer.style.transform = `scale(${zoom}) translate(${cloneX / zoom}px, ${cloneY / zoom}px)`
     })
-  }, [radius, borderWidth, zoomLevel])
+  }, [radius, borderWidth])
 
   // Activate / deactivate
   const activate = React.useCallback(() => {
     stateRef.current.active = true
     stateRef.current.scrollX = window.scrollX
     stateRef.current.scrollY = window.scrollY
+    currentZoomRef.current = zoomLevel
     cloneDocument()
     hostRef.current?.classList.add("louper-active")
     scheduleRender()
-  }, [cloneDocument, scheduleRender])
+  }, [cloneDocument, scheduleRender, zoomLevel])
 
   const deactivate = React.useCallback(() => {
     stateRef.current.active = false
@@ -254,7 +266,7 @@ function Louper({
     }
   }, [controlled, hotkey, activate, deactivate])
 
-  // Mouse + scroll tracking (always active)
+  // Mouse + scroll + wheel tracking (always active)
   React.useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       stateRef.current.mouseX = e.clientX
@@ -268,14 +280,27 @@ function Louper({
         scheduleRender()
       }
     }
+    const onWheel = (e: WheelEvent) => {
+      if (stateRef.current.active) {
+        e.preventDefault()
+        const current = currentZoomRef.current
+        currentZoomRef.current = Math.min(
+          maxZoom,
+          Math.max(minZoom, current * (1 - e.deltaY * zoomSensitivity)),
+        )
+        scheduleRender()
+      }
+    }
 
     window.addEventListener("mousemove", onMouseMove)
     window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("wheel", onWheel, { passive: false })
     return () => {
       window.removeEventListener("mousemove", onMouseMove)
       window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("wheel", onWheel)
     }
-  }, [scheduleRender])
+  }, [scheduleRender, minZoom, maxZoom, zoomSensitivity])
 
   return (
     <div
