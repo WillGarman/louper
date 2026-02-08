@@ -1,0 +1,22 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "louper",
+  "homepage": "https://github.com/willgarman/louper",
+  "items": [
+    {
+      "name": "louper",
+      "type": "registry:ui",
+      "title": "Louper",
+      "description": "A zoom circle dev tool component. Hold Alt/Option to magnify any part of your page.",
+      "files": [
+        {
+          "path": "louper.tsx",
+          "type": "registry:ui",
+          "target": "components/ui/louper.tsx"
+        }
+      ],
+      "dependencies": [],
+      "registryDependencies": []
+    }
+  ]
+}
