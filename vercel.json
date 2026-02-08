@@ -1,4 +1,5 @@
 {
-  "buildCommand": "pnpm build && mkdir -p site && sed 's|../../packages/core/dist/auto.global.js|https://unpkg.com/louper/dist/auto.global.js|' examples/vanilla/index.html > site/index.html",
+  "installCommand": "echo skip",
+  "buildCommand": "mkdir -p site && sed 's|../../packages/core/dist/auto.global.js|https://unpkg.com/louper/dist/auto.global.js|' examples/vanilla/index.html > site/index.html",
   "outputDirectory": "site"
 }
