@@ -1,5 +1,5 @@
 {
   "installCommand": "echo skip",
-  "buildCommand": "mkdir -p site && sed 's|../../packages/core/dist/auto.global.js|https://unpkg.com/louper/dist/auto.global.js|' examples/vanilla/index.html > site/index.html",
+  "buildCommand": "mkdir -p site && sed 's|../../packages/core/dist/auto.global.js|https://unpkg.com/louper/dist/auto.global.js|' examples/vanilla/index.html > site/index.html && cp examples/vanilla/favicon.svg site/favicon.svg && cp examples/vanilla/og.png site/og.png",
   "outputDirectory": "site"
 }
